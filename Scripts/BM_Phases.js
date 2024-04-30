@@ -1,6 +1,7 @@
-var pv0String = PVUtil.getString(pvs[0]);
-ConsoleUtil.writeInfo("pv0String = " + pv0String);
+var pv0String = PVUtil.getString(pvs[0]);			// Retrieve value from Input PVs
+ConsoleUtil.writeInfo("pv0String = " + pv0String);	// Show value in console
 
+/* Check Input PV and display value */
 if (pv0String == 1 || pv0String == 'safe') {
 	widget.setPropertyValue("pv_value", 1);		// 00001
 } else if (pv0String == 2 || pv0String == 'standby') {

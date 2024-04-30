@@ -1,75 +1,82 @@
-var Paths = Java.type("java.nio.file.Paths");
-var FileSystems = Java.type("java.nio.file.FileSystems");
-var StandardWatchEK = Java.type("java.nio.file.StandardWatchEventKinds");
-var UIBundlingThread = Java.type("org.csstudio.ui.util.thread.UIBundlingThread");
-var Display = Java.type("org.eclipse.swt.widgets.Display");
-var Runnable = Java.type("java.lang.Runnable");
-var Thread = Java.type("java.lang.Thread");
+var File = Java.type('java.io.File');	// Manipulate file objects
+var Paths = Java.type("java.nio.file.Paths");	// Manipulate path objects
+var FileSystems = Java.type("java.nio.file.FileSystems");	// Access host file system
+var StandardWatchEK = Java.type("java.nio.file.StandardWatchEventKinds");	// Event kinds
+var Runnable = Java.type("java.lang.Runnable");		// Create tasks for threads
+var Thread = Java.type("java.lang.Thread");		// Threading
 
 
 
-function UpdateWidget(imagePath){
+/* Display image on GUI*/
+function UpdateWidget(imagePath) {
+	/* Set up asyncExec to update Image widget as runnable */
 	Display.getDefault().asyncExec(new Runnable({
 		run: function() {
-			widgetController.setPropertyValue("image_file", imagePath);
-			widgetController.setPropertyValue("stretch_to_fit", true);
+			widgetController.setPropertyValue("image_file", imagePath);	// Display image
 		}
 	}));
-	
-	//ConsoleUtil.writeInfo("Update image widget function");
 	
 	return;
 }
 
-function IsValidFile(fileName){
-	//ConsoleUtil.writeInfo("Is valid file function");
+
+
+/* Check if file created in directory is an image */
+function IsValidFile(fileName) {
 	
 	return fileName.toLowerCase().endsWith('.png') ||
 		   fileName.toLowerCase().endsWith('.jpg') ||
 		   fileName.toLowerCase().endsWith('.jpeg');
 }
 
-function StartMonitoring(pathToWatch){
-	//ConsoleUtil.writeInfo("Before running the task function 1");
-	var watchService = FileSystems.getDefault().newWatchService();
-	var path = Paths.get(pathToWatch);
-	path.register(watchService, StandardWatchEK.ENTRY_CREATE);
+
+
+/* Main function to monitor folder */
+function StartMonitoring() {
+	var folderPath = "C:\\Users\\gusvi\\yamcs-studio\\VITA_FE1\\Images";	// Folder to be watched
+	var watchService = FileSystems.getDefault().newWatchService();	// Create watch service 
+	var path = Paths.get(folderPath);		// File path object 
+	path.register(watchService, StandardWatchEK.ENTRY_CREATE);		// Register watch service to this directory 
 	
-	
+	/* Task to be executed in thread as runnable */
 	var task = new Runnable({
 		run: function() {
-			var valid = true;
+			var valid = true;	// For validity of key 
+			
 			Thread.sleep(30000);
+			
 			while (valid) {
 				try {
-					//ConsoleUtil.writeInfo("Try loop");
-					var key = watchService.take();
-					var events = key.pollEvents().toArray();
+					var key = watchService.take();		// Wait for an event 
+					var events = key.pollEvents().toArray();	// Extract events as array 
+					
+					/* Iterate through array */
 					for (var i = 0; i < events.length; i++) {
-						var event = events[i];
-						var kind = event.kind();
+						var event = events[i];		// Extract an event 
+						var kind = event.kind();	// Get event kind 
+						
+						/* Check if event kind is a file been modified */
 						if (StandardWatchEK.ENTRY_CREATE.equals(kind)) {
-							var eventContext = event.context().toString();
-							var imagePath = path.resolve(eventContext).toString();
-							//ConsoleUtil.writeInfo("New file created");
+							var eventContext = event.context().toString();		// Get path of modified file 
+							var imagePath = path.resolve(eventContext).toString();		// Full path
+							
+							/* Check if file an image */
 							if(IsValidFile(imagePath)){
-								//ConsoleUtil.writeInfo("Is valid file return: " + IsValidFile(imagePath).toString());
-								UpdateWidget(imagePath);
+								UpdateWidget(imagePath);		// Update widget 
 							}
 						}
 					}
-					valid = key.reset();
+					valid = key.reset();		// Reset key to resume watching
 				} catch (e){
-					ConsoleUtil.writeInfo("Image ERROR. " + e.toString());
+					ConsoleUtil.writeInfo("Bottom Image ERROR. " + e.toString());
 				}
 			}
 		}
 	});
-	
-	var thread = new Thread(task);
-	thread.start();
+	var thread = new Thread(task);		// Initialise thread with runnable 
+	thread.start();		// Start thread
 	
 }
 
-var folderPath = "C:\\Users\\gusvi\\yamcs-studio\\Test\\Images";
-StartMonitoring(folderPath);
+
+StartMonitoring();		// Start Monitoring 
