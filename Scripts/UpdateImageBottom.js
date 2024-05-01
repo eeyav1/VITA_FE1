@@ -4,7 +4,7 @@ var FileSystems = Java.type("java.nio.file.FileSystems");	// Access host file sy
 var StandardWatchEK = Java.type("java.nio.file.StandardWatchEventKinds");	// Event kinds
 var Runnable = Java.type("java.lang.Runnable");		// Create tasks for threads
 var Thread = Java.type("java.lang.Thread");		// Threading
-
+var Display = Java.type("org.eclipse.swt.widgets.Display");
 
 
 /* Display image on GUI*/
